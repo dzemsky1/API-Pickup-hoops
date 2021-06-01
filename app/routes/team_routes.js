@@ -27,7 +27,7 @@ const requireToken = passport.authenticate('bearer', { session: false })
 // instantiate a router (mini app that only handles routes)
 const router = express.Router()
 
-// INDEX
+// INDEX YOUR OWN TEAMS
 // GET /teams
 router.get('/teams', requireToken, (req, res, next) => {
   const owner = req.user._id
@@ -38,6 +38,23 @@ router.get('/teams', requireToken, (req, res, next) => {
       // we want to convert each one to a POJO, so we use `.map` to
       // apply `.toObject` to each one
       return teams.map(team => team.toObject())
+    })
+    // respond with status 200 and JSON of the examples
+    .then(teams => res.status(200).json({ teams: teams }))
+    // if an error occurs, pass it to the handler
+    .catch(next)
+})
+
+// INDEX OTHER TEAMS
+// GET /teams
+router.get('/otherteams', requireToken, (req, res, next) => {
+  Team.find()
+    .populate('owner', 'email')
+    .then(teams => {
+      // `examples` will be an array of Mongoose documents
+      // we want to convert each one to a POJO, so we use `.map` to
+      // apply `.toObject` to each one
+      return teams.filter(team => team.owner.id !== req.user.id)
     })
     // respond with status 200 and JSON of the examples
     .then(teams => res.status(200).json({ teams: teams }))
