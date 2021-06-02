@@ -1,13 +1,24 @@
 const mongoose = require('mongoose')
-const teamSchema = require('./team')
 
 const challengeSchema = new mongoose.Schema({
-  hometeam: [teamSchema],
-  awayteam: [teamSchema],
-  winner: [teamSchema]
+  hometeam: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Team',
+    required: true
+  },
+  awayteam: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Team',
+    required: true
+  },
   winner: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'Team'
+  },
+  owner: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'User',
+    required: true
   },
   location: {
     type: String

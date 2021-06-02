@@ -78,6 +78,7 @@ router.get('/teams/:id', requireToken, (req, res, next) => {
 // POST /teams
 router.post('/teams', requireToken, (req, res, next) => {
   // set owner of new example to be current user
+  console.log(req.body)
   req.body.team.owner = req.user.id
 
   Team.create(req.body.team)

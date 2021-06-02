@@ -13,7 +13,10 @@ const teamSchema = new mongoose.Schema({
     type: String,
     required: true
   },
-  games: {
+  wins: {
+    type: Number
+  },
+  losses: {
     type: Number
   },
   owner: {

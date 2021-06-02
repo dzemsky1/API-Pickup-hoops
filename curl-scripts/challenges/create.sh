@@ -10,9 +10,9 @@ curl "${API}${URL_PATH}" \
   --header "Authorization: Bearer ${TOKEN}" \
   --data '{
     "challenge": {
-      "hometeam": "'"${NAME}"'",
-      "awayteam": "'"${MEMBERS}"'",
-      "location": "'"${LOCATION}"'",
+      "hometeam": "'"${HOMETEAM}"'",
+      "awayteam": "'"${AWAYTEAM}"'",
+      "location": "'"${LOCATION}"'"
     }
   }'
 
