@@ -22,6 +22,9 @@ const challengeSchema = new mongoose.Schema({
   },
   location: {
     type: String
+  },
+  accepted: {
+    type: Boolean
   }
 }, {
   timestamps: true

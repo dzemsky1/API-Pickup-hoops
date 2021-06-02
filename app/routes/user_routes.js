@@ -5,10 +5,10 @@ const crypto = require('crypto')
 const passport = require('passport')
 // bcrypt docs: https://github.com/kelektiv/node.bcrypt.js
 const bcrypt = require('bcrypt')
-
 // see above for explanation of "salting", 10 rounds is recommended
 const bcryptSaltRounds = 10
-
+const customErrors = require('../../lib/custom_errors')
+const handle404 = customErrors.handle404
 // pull in error types and the logic to handle them and set status codes
 const errors = require('../../lib/custom_errors')
 
@@ -135,6 +135,23 @@ router.delete('/sign-out', requireToken, (req, res, next) => {
   // save the token and respond with 204
   req.user.save()
     .then(() => res.sendStatus(204))
+    .catch(next)
+})
+
+// UPDATE USER ROUTE FOR PRIMARY TEAM
+router.patch('/users', requireToken, (req, res, next) => {
+  // if the client attempts to change the `owner` property by including a new
+  // owner, prevent that by deleting that key/value pair
+
+  User.findById(req.user.id)
+    .then(handle404)
+    .then(user => {
+      // pass the result of Mongoose's `.update` to the next `.then`
+      return user.updateOne(req.body.user.primaryTeam)
+    })
+    // if that succeeded, return 204 and no JSON
+    .then(() => res.sendStatus(204))
+    // if an error occurs, pass it to the handler
     .catch(next)
 })
 

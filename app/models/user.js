@@ -6,6 +6,10 @@ const userSchema = new mongoose.Schema({
     required: true,
     unique: true
   },
+  primaryTeam: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Team'
+  },
   hashedPassword: {
     type: String,
     required: true

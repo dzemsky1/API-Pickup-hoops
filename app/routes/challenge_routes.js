@@ -50,8 +50,8 @@ router.post('/challenges', requireToken, (req, res, next) => {
 })
 
 router.get('/challenges', requireToken, (req, res, next) => {
-  // const owner = req.user._id
-  Challenge.find()
+  const owner = req.user._id
+  Challenge.find({owner: owner})
     .populate('owner', 'email')
     .populate('hometeam', 'name')
     .populate('awayteam', 'name')
