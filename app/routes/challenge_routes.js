@@ -49,9 +49,9 @@ router.post('/challenges', requireToken, (req, res, next) => {
     .catch(next)
 })
 
+// All Challenges
 router.get('/challenges', requireToken, (req, res, next) => {
-  const owner = req.user._id
-  Challenge.find({owner: owner})
+  Challenge.find()
     .populate('owner', 'email')
     .populate('hometeam', 'name')
     .populate('awayteam', 'name')
@@ -72,7 +72,8 @@ router.get('/pending-challenges', requireToken, (req, res, next) => {
   Challenge.find({owner: owner})
     .populate('owner', 'email')
     .populate('hometeam', 'name')
-    .populate('awayteam', 'name')
+    .populate('awayteam', 'name owner')
+    // .populate('awayteam', 'owner')
     .then(challenges => {
       // `examples` will be an array of Mongoose documents
       // we want to convert each one to a POJO, so we use `.map` to
@@ -91,14 +92,54 @@ router.get('/accepted-challenges', requireToken, (req, res, next) => {
     .populate('owner', 'email')
     .populate('hometeam', 'name')
     .populate('awayteam', 'name')
+    // .populate('awayteam', 'owner')
     .then(challenges => {
       // `examples` will be an array of Mongoose documents
       // we want to convert each one to a POJO, so we use `.map` to
       // apply `.toObject` to each one
-      return challenges.filter(challenge => challenge.accepted === false)
+      return challenges.filter(challenge => challenge.accepted === true)
     })
     // respond with status 200 and JSON of the examples
     .then(challenges => res.status(200).json({ challenges: challenges }))
+    // if an error occurs, pass it to the handler
+    .catch(next)
+})
+
+router.get('/incoming-challenges', requireToken, (req, res, next) => {
+  const owner = req.user.id
+  Challenge.find()
+    .populate('owner', 'email')
+    .populate('hometeam', 'name')
+    .populate('awayteam', 'name owner')
+    .then(challenges => {
+      // `examples` will be an array of Mongoose documents
+      // we want to convert each one to a POJO, so we use `.map` to
+      // apply `.toObject` to each one
+      return challenges.filter(challenge => {
+        console.log('awayteam owner id is ', challenge.awayteam.owner)
+        console.log('user id is ', owner)
+        return challenge.awayteam.owner == owner
+      })
+    })
+    // respond with status 200 and JSON of the examples
+    .then(challenges => res.status(200).json({ challenges: challenges }))
+    // if an error occurs, pass it to the handler
+    .catch(next)
+})
+
+// DESTROY
+// DELETE /examples/5a7db6c74d55bc51bdf39793
+router.delete('/challenges/:id', requireToken, (req, res, next) => {
+  Challenge.findById(req.params.id)
+    .then(handle404)
+    .then(challenge => {
+      // throw an error if current user doesn't own `example`
+
+      // delete the example ONLY IF the above didn't throw
+      challenge.deleteOne()
+    })
+    // send back 204 and no content if the deletion succeeded
+    .then(() => res.sendStatus(204))
     // if an error occurs, pass it to the handler
     .catch(next)
 })
