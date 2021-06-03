@@ -147,10 +147,34 @@ router.patch('/users', requireToken, (req, res, next) => {
     .then(handle404)
     .then(user => {
       // pass the result of Mongoose's `.update` to the next `.then`
-      return user.updateOne(req.body.user.primaryTeam)
+      return user.updateOne(req.body.user)
     })
     // if that succeeded, return 204 and no JSON
     .then(() => res.sendStatus(204))
+    // if an error occurs, pass it to the handler
+    .catch(next)
+})
+
+router.get('/users', requireToken, (req, res, next) => {
+  User.find()
+    .then(users => {
+      // `examples` will be an array of Mongoose documents
+      // we want to convert each one to a POJO, so we use `.map` to
+      // apply `.toObject` to each one
+      return users.map(user => user.toObject())
+    })
+    // respond with status 200 and JSON of the examples
+    .then(users => res.status(200).json({ users: users }))
+    // if an error occurs, pass it to the handler
+    .catch(next)
+})
+
+router.get('/users/:id', requireToken, (req, res, next) => {
+  // req.params.id will be set based on the `:id` in the route
+  User.findById(req.params.id)
+    .then(handle404)
+    // if `findById` is succesful, respond with 200 and "example" JSON
+    .then(user => res.status(200).json({ user: user.toObject() }))
     // if an error occurs, pass it to the handler
     .catch(next)
 })
