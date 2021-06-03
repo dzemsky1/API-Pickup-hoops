@@ -67,4 +67,40 @@ router.get('/challenges', requireToken, (req, res, next) => {
     .catch(next)
 })
 
+router.get('/pending-challenges', requireToken, (req, res, next) => {
+  const owner = req.user._id
+  Challenge.find({owner: owner})
+    .populate('owner', 'email')
+    .populate('hometeam', 'name')
+    .populate('awayteam', 'name')
+    .then(challenges => {
+      // `examples` will be an array of Mongoose documents
+      // we want to convert each one to a POJO, so we use `.map` to
+      // apply `.toObject` to each one
+      return challenges.filter(challenge => challenge.accepted === false)
+    })
+    // respond with status 200 and JSON of the examples
+    .then(challenges => res.status(200).json({ challenges: challenges }))
+    // if an error occurs, pass it to the handler
+    .catch(next)
+})
+
+router.get('/accepted-challenges', requireToken, (req, res, next) => {
+  const owner = req.user._id
+  Challenge.find({owner: owner})
+    .populate('owner', 'email')
+    .populate('hometeam', 'name')
+    .populate('awayteam', 'name')
+    .then(challenges => {
+      // `examples` will be an array of Mongoose documents
+      // we want to convert each one to a POJO, so we use `.map` to
+      // apply `.toObject` to each one
+      return challenges.filter(challenge => challenge.accepted === false)
+    })
+    // respond with status 200 and JSON of the examples
+    .then(challenges => res.status(200).json({ challenges: challenges }))
+    // if an error occurs, pass it to the handler
+    .catch(next)
+})
+
 module.exports = router
