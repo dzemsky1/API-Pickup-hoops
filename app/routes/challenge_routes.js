@@ -15,7 +15,7 @@ const customErrors = require('../../lib/custom_errors')
 const handle404 = customErrors.handle404
 // we'll use this function to send 401 when a user tries to modify a resource
 // that's owned by someone else
-const requireOwnership = customErrors.requireOwnership
+// const requireOwnership = customErrors.requireOwnership
 
 // this is middleware that will remove blank fields from `req.body`, e.g.
 // { example: { title: '', text: 'foo' } } -> { example: { text: 'foo' } }
@@ -88,16 +88,42 @@ router.get('/pending-challenges', requireToken, (req, res, next) => {
 
 router.get('/accepted-challenges', requireToken, (req, res, next) => {
   const owner = req.user._id
-  Challenge.find({owner: owner})
+  Challenge.find()
     .populate('owner', 'email')
-    .populate('hometeam', 'name')
-    .populate('awayteam', 'name')
+    .populate('hometeam', 'name owner')
+    .populate('awayteam', 'name owner')
     // .populate('awayteam', 'owner')
     .then(challenges => {
       // `examples` will be an array of Mongoose documents
       // we want to convert each one to a POJO, so we use `.map` to
       // apply `.toObject` to each one
-      return challenges.filter(challenge => challenge.accepted === true)
+      return challenges.filter(challenge => {
+        return (challenge.hometeam.owner.equals(owner) || challenge.awayteam.owner.equals(owner)) && challenge.accepted == true && challenge.finished == false
+        // return challenge.hometeam.owner == owner && challenge.accepted == true
+      })
+    })
+    // respond with status 200 and JSON of the examples
+    .then(challenges => res.status(200).json({ challenges: challenges }))
+    // if an error occurs, pass it to the handler
+    .catch(next)
+})
+
+router.get('/finished-challenges', requireToken, (req, res, next) => {
+  const owner = req.user._id
+  Challenge.find()
+    .populate('owner', 'email')
+    .populate('hometeam', 'name owner')
+    .populate('awayteam', 'name owner')
+    .populate('winner', 'name owner')
+    // .populate('awayteam', 'owner')
+    .then(challenges => {
+      // `examples` will be an array of Mongoose documents
+      // we want to convert each one to a POJO, so we use `.map` to
+      // apply `.toObject` to each one
+      return challenges.filter(challenge => {
+        return (challenge.hometeam.owner.equals(owner) || challenge.awayteam.owner.equals(owner)) && challenge.finished == true
+        // return challenge.hometeam.owner == owner && challenge.accepted == true
+      })
     })
     // respond with status 200 and JSON of the examples
     .then(challenges => res.status(200).json({ challenges: challenges }))
@@ -118,7 +144,7 @@ router.get('/incoming-challenges', requireToken, (req, res, next) => {
       return challenges.filter(challenge => {
         console.log('awayteam owner id is ', challenge.awayteam.owner)
         console.log('user id is ', owner)
-        return challenge.awayteam.owner == owner
+        return challenge.awayteam.owner == owner && challenge.accepted == false
       })
     })
     // respond with status 200 and JSON of the examples
@@ -139,6 +165,25 @@ router.delete('/challenges/:id', requireToken, (req, res, next) => {
       challenge.deleteOne()
     })
     // send back 204 and no content if the deletion succeeded
+    .then(() => res.sendStatus(204))
+    // if an error occurs, pass it to the handler
+    .catch(next)
+})
+
+// UPDATE
+// PATCH /examples/5a7db6c74d55bc51bdf39793
+router.patch('/challenges/:id', requireToken, removeBlanks, (req, res, next) => {
+  // if the client attempts to change the `owner` property by including a new
+  // owner, prevent that by deleting that key/value pair
+  delete req.body.challenge.owner
+
+  Challenge.findById(req.params.id)
+    .then(handle404)
+    .then(challenge => {
+      // pass the result of Mongoose's `.update` to the next `.then`
+      return challenge.updateOne(req.body.challenge)
+    })
+    // if that succeeded, return 204 and no JSON
     .then(() => res.sendStatus(204))
     // if an error occurs, pass it to the handler
     .catch(next)

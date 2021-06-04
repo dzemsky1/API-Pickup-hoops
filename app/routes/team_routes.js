@@ -104,7 +104,6 @@ router.patch('/teams/:id', requireToken, removeBlanks, (req, res, next) => {
     .then(team => {
       // pass the `req` object and the Mongoose record to `requireOwnership`
       // it will throw an error if the current user isn't the owner
-      requireOwnership(req, team)
 
       // pass the result of Mongoose's `.update` to the next `.then`
       return team.updateOne(req.body.team)

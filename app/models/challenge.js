@@ -15,6 +15,10 @@ const challengeSchema = new mongoose.Schema({
     type: mongoose.Schema.Types.ObjectId,
     ref: 'Team'
   },
+  loser: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Team'
+  },
   owner: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'User',
@@ -24,6 +28,9 @@ const challengeSchema = new mongoose.Schema({
     type: String
   },
   accepted: {
+    type: Boolean
+  },
+  finished: {
     type: Boolean
   }
 }, {
